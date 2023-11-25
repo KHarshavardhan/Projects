@@ -1,0 +1,86 @@
+import tkinter as tk
+from tkinter import ttk
+import random
+
+# Dictionary to store questions and their corresponding answers
+questions_and_answers = {}
+
+# Counter for dynamically adding questions
+count = 1
+
+# Variable to keep track of the currently displayed question
+current_question = None
+
+# Function to add a new question entry
+def AddaQuestion():
+    global count
+    # Create entry widgets for question and answer
+    questions = ttk.Entry(frame, width=30)
+    questions.grid(column=0, row=2 + count)
+    questions.bindtags((questions,) + questions.bindtags())  # Add the entry widget to bindtags
+    answers = ttk.Entry(frame, width=30)
+    answers.grid(column=1, row=2 + count)
+    answers.bindtags((answers,) + answers.bindtags())  # Add the entry widget to bindtags
+    count += 1
+
+# Function to submit questions and answers
+def SubmitQuestions():
+    global current_question
+
+    # Iterate through added questions
+    for i in range(1, count):
+        question_entry = frame.grid_slaves(row=2 + i, column=0)[0]
+        answer_entry = frame.grid_slaves(row=2 + i, column=1)[0]
+
+        # Add the question and answer to the dictionary
+        questions_and_answers[question_entry.get()] = answer_entry.get()
+
+    # Randomly select a question and update current_question
+    if questions_and_answers:
+        current_question = random.choice(list(questions_and_answers.keys()))
+
+
+# Function to reveal the currently selected question's answer
+def RevealQuestion():
+    if current_question:
+        result_label.config(text=questions_and_answers.get(current_question, "No answer"))
+
+# Function to generate a new random question
+def GenerateQuestion():
+    global current_question
+    # Randomly select another question
+    if questions_and_answers:
+        current_question = random.choice(list(questions_and_answers.keys()))
+        result_label.config(text="")
+
+# Main Tkinter window
+root = tk.Tk()
+root.title("Flash Cards")
+
+# Frame to organize widgets
+frame = ttk.Frame(root, padding=20)
+frame.grid()
+
+# Entry widgets for adding questions
+questions = ttk.Entry(frame, width=30)
+questions.grid(column=0, row=2)
+questions.bindtags((questions,) + questions.bindtags())  # Add the entry widget to bindtags
+answers = ttk.Entry(frame, width=30)
+answers.grid(column=1, row=2)
+answers.bindtags((answers,) + answers.bindtags())  # Add the entry widget to bindtags
+
+# Buttons for user interaction
+ttk.Button(frame, text="Add Question", command=AddaQuestion).grid(column=2, row=2, pady=5)
+ttk.Button(frame, text="Submit", command=SubmitQuestions).grid(column=0, row=1, pady=10)
+ttk.Button(frame, text="Reveal", command=RevealQuestion).grid(column=1, row=1, pady=10)
+ttk.Button(frame, text="Generate", command=GenerateQuestion).grid(column=2, row=1, pady=10)
+
+# Label to display the result (answer)
+result_label = ttk.Label(frame, text="", font=("Arial", 12))
+result_label.grid(column=0, row=4, columnspan=3, pady=10)
+
+# Label for the title
+ttk.Label(frame, text="Flash Cards", font=("Arial", 14, "bold")).grid(column=0, row=0)
+
+# Start the Tkinter event loop
+root.mainloop()
