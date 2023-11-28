@@ -14,73 +14,124 @@ current_question = None
 # Function to add a new question entry
 def AddaQuestion():
     global count
-    # Create entry widgets for question and answer
-    questions = ttk.Entry(frame, width=30)
-    questions.grid(column=0, row=2 + count)
-    questions.bindtags((questions,) + questions.bindtags())  # Add the entry widget to bindtags
-    answers = ttk.Entry(frame, width=30)
-    answers.grid(column=1, row=2 + count)
-    answers.bindtags((answers,) + answers.bindtags())  # Add the entry widget to bindtags
-    count += 1
+    try:
+        # Create entry widgets for question and answer
+        if count == 1:
+            questions_label = ttk.Label(frame, text="Enter Questions", font=("Arial", 10, "bold"))
+            questions_label.grid(column=0, row=2)
+            answers_label = ttk.Label(frame, text="Enter Answers", font=("Arial", 10, "bold"))
+            answers_label.grid(column=1, row=2)
+        questions = ttk.Entry(frame, width=30)
+        questions.grid(column=0, row=2 + count)
+        questions.bindtags((questions,) + questions.bindtags())  # Add the entry widget to bindtags
+        answers = ttk.Entry(frame, width=30)
+        answers.grid(column=1, row=2 + count)
+        answers.bindtags((answers,) + answers.bindtags())  # Add the entry widget to bindtags
+        count += 1
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 # Function to submit questions and answers
 def SubmitQuestions():
     global current_question
+    try:
+        # Iterate through added questions
+        for i in range(1, count):
+            question_entry = frame.grid_slaves(row=2 + i, column=0)[0]
+            answer_entry = frame.grid_slaves(row=2 + i, column=1)[0]
 
-    # Iterate through added questions
-    for i in range(1, count):
-        question_entry = frame.grid_slaves(row=2 + i, column=0)[0]
-        answer_entry = frame.grid_slaves(row=2 + i, column=1)[0]
+            # Add the question and answer to the dictionary
+            questions_and_answers[question_entry.get()] = answer_entry.get()
 
-        # Add the question and answer to the dictionary
-        questions_and_answers[question_entry.get()] = answer_entry.get()
+        # Hide the question and answer entry boxes
+        HideQuestionAnswerBoxes()
 
-    # Randomly select a question and update current_question
-    if questions_and_answers:
-        current_question = random.choice(list(questions_and_answers.keys()))
+        # Randomly select a question and update current_question
+        if questions_and_answers:
+            current_question = random.choice(list(questions_and_answers.keys()))
+            question_label.config(text=current_question)
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
+# Function to hide question and answer entry boxes
+def HideQuestionAnswerBoxes():
+    try:
+        for i in range(1, count):
+            frame.grid_slaves(row=2 + i, column=0)[0].grid_remove()
+            frame.grid_slaves(row=2 + i, column=1)[0].grid_remove()
+        frame.grid_slaves(row=2, column=0)[0].grid_remove()
+        frame.grid_slaves(row=2, column=1)[0].grid_remove()
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+# Function to clear questions_and_answers
+def ClearQuestions():
+    global questions_and_answers
+    try:
+        questions_and_answers = {}
+        question_label.config(text="")
+        result_label.config(text="")
+        HideQuestionAnswerBoxes()
+        ttk.Button(frame, text="Add Question", command=AddaQuestion).grid(column=2, row=2, pady=5)
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 # Function to reveal the currently selected question's answer
 def RevealQuestion():
-    if current_question:
-        result_label.config(text=questions_and_answers.get(current_question, "No answer"))
+    try:
+        if current_question:
+            result_label.config(text=questions_and_answers.get(current_question, "No answer"))
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 # Function to generate a new random question
 def GenerateQuestion():
     global current_question
-    # Randomly select another question
-    if questions_and_answers:
-        current_question = random.choice(list(questions_and_answers.keys()))
-        result_label.config(text="")
+    try:
+        # Randomly select another question that is different from the current one
+        if questions_and_answers:
+            available_questions = list(set(questions_and_answers.keys()) - {current_question})
+            if available_questions:
+                current_question = random.choice(available_questions)
+                question_label.config(text=current_question)
+                result_label.config(text="")
+            else:
+                question_label.config(text="No more questions")
+                result_label.config(text="")
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 # Main Tkinter window
-root = tk.Tk()
-root.title("Flash Cards")
+try:
+    root = tk.Tk()
+    root.title("Flash Cards")
 
-# Frame to organize widgets
-frame = ttk.Frame(root, padding=20)
-frame.grid()
+    # Frame to organize widgets
+    frame = ttk.Frame(root, padding=20)
+    frame.grid()
 
-# Entry widgets for adding questions
-questions = ttk.Entry(frame, width=30)
-questions.grid(column=0, row=2)
-questions.bindtags((questions,) + questions.bindtags())  # Add the entry widget to bindtags
-answers = ttk.Entry(frame, width=30)
-answers.grid(column=1, row=2)
-answers.bindtags((answers,) + answers.bindtags())  # Add the entry widget to bindtags
+    # Label to display the generated question
+    question_label = ttk.Label(frame, text="", font=("Arial", 12))
+    question_label.grid(column=0, row=3, columnspan=3)
 
-# Buttons for user interaction
-ttk.Button(frame, text="Add Question", command=AddaQuestion).grid(column=2, row=2, pady=5)
-ttk.Button(frame, text="Submit", command=SubmitQuestions).grid(column=0, row=1, pady=10)
-ttk.Button(frame, text="Reveal", command=RevealQuestion).grid(column=1, row=1, pady=10)
-ttk.Button(frame, text="Generate", command=GenerateQuestion).grid(column=2, row=1, pady=10)
+    # Label to display the result (answer)
+    result_label = ttk.Label(frame, text="", font=("Arial", 12))
+    result_label.grid(column=0, row=4, columnspan=3, pady=10)
 
-# Label to display the result (answer)
-result_label = ttk.Label(frame, text="", font=("Arial", 12))
-result_label.grid(column=0, row=4, columnspan=3, pady=10)
+    # Buttons for user interaction
+    ttk.Button(frame, text="Add Question", command=AddaQuestion).grid(column=2, row=2, pady=5)
+    ttk.Button(frame, text="Submit", command=SubmitQuestions).grid(column=0, row=1, pady=10)
+    ttk.Button(frame, text="Reveal", command=RevealQuestion).grid(column=1, row=1, pady=10)
+    ttk.Button(frame, text="Generate", command=GenerateQuestion).grid(column=2, row=1, pady=10)
+    ttk.Button(frame, text="Clear", command=ClearQuestions).grid(column=3, row=1, pady=10)
 
-# Label for the title
-ttk.Label(frame, text="Flash Cards", font=("Arial", 14, "bold")).grid(column=0, row=0)
+    # Label for the title
+    ttk.Label(frame, text="Flash Cards", font=("Arial", 14, "bold")).grid(column=0, row=0, columnspan=4, sticky="n")
 
-# Start the Tkinter event loop
-root.mainloop()
+    # Center the frame at the top
+    frame.grid(column=0, row=0, columnspan=4, sticky="n")
+
+    # Start the Tkinter event loop
+    root.mainloop()
+except Exception as e:
+    print(f"An error occurred: {e}")
